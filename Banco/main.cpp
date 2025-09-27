@@ -1,19 +1,123 @@
-#include <QCoreApplication>
+#include <iostream>
+#include <funciones.h>
 
-int main(int argc, char *argv[])
+using namespace std;
+
+int main()
 {
-    QCoreApplication a(argc, argv);
+    int rSaldo, num = 0;
+    string usuario, cedula, clave, saldo, nDatos, datos;
+    bool admin = false;
+    cout << "Ingrese su usuario: ";
+    getline(cin, usuario);
+    cout<<"Ingrese su clave: ";
+    getline(cin, clave);
+    // nDatos = usuario + clave;//cambiar el nombre y clave de usuario
+    //escribirArchivo("sudo.txt", encriptar(nDatos,4));
+    nDatos = desencriptar(leerArchivo("sudo.txt") ,4);
+    if (nDatos.find(usuario) != string::npos && nDatos.find(clave) != string::npos)
+    {
+        admin = true;
+        cout << "BIENVENIDO ADMINISTRADOR\n";
+    }
+    else
+    {
+        nDatos = desencriptar(convertirABinario(leerArchivo("usuarios.txt")) ,4);
+        if (nDatos.find(usuario) != string::npos && nDatos.find(clave) != string::npos)
+        {
+            cout<<"Bienvenido, dijite:\n"
+                 <<"1. Retirar dinero.\n"
+                 <<"2. Consultar saldo.\n"
+                 <<"3. Salir.\n";
+            cin>>num;
+            while(num != 3)
+            {
+                nDatos = desencriptar(convertirABinario(leerArchivo(usuario+".txt")), 4);
+                if(num == 1)
+                {
+                    string::npos;
+                    size_t pos = nDatos.find("Saldo: ");
+                    cout<<"Actualmente su ";
+                    cout << nDatos.substr(pos) << endl;
+                    cout<<"Ingrese el valor que desea retirar: ";
+                    cin>>rSaldo;
+                    if (actualizarSaldo(nDatos, rSaldo))
+                    {
+                        escribirArchivo(usuario + ".txt", encriptar(nDatos, 4));
+                        cout << "Su dinero fue retirado.\n";
+                    }
+                }
+                else if(num == 2)
+                {
 
-    // Set up code that uses the Qt event loop here.
-    // Call a.quit() or a.exit() to quit the application.
-    // A not very useful example would be including
-    // #include <QTimer>
-    // near the top of the file and calling
-    // QTimer::singleShot(5000, &a, &QCoreApplication::quit);
-    // which quits the application after 5 seconds.
+                    if (nDatos.find("Saldo: ") != string::npos)
+                    {
+                        size_t pos = nDatos.find("Saldo: ");
+                        actualizarSaldo(nDatos,0);
+                        escribirArchivo(usuario+ ".txt",encriptar(nDatos, 4));
+                        cout << nDatos.substr(pos) << endl;
+                    }
 
-    // If you do not need a running Qt event loop, remove the call
-    // to a.exec() or use the Non-Qt Plain C++ Application template.
+                }
+                cout<<"1. Retirar dinero.\n";
+                cout<<"2. Consultar saldo.\n";
+                cout<<"3. Salir.\n";
+                cin>>num;
+            }
+        }
+        else
+        {
+            cout<<"Usuario o clave incorrectas.";
+        }
 
-    return a.exec();
+    }
+    while(admin)
+    {
+        cout << "1. Agregar usuario nuevo.\n";
+        cout << "2. Eliminar usuario.\n";
+        cout << "3. Salir.\n";
+        cin>> num;
+        cin.ignore();
+        if(num==1)
+        {
+            cout << "Ingrese nombre de usuario: ";
+            getline(cin, usuario);
+            if(archivoExiste(usuario))
+            {
+                cout<<"el usuario ya existe";
+            }
+            else
+            {
+                cout<<"Ingrese la clave: ";
+                getline(cin, clave);
+                cout << "Ingrese la cedula: ";
+                getline(cin, cedula);
+                cout << "Ingrese el saldo: ";
+                getline(cin, saldo);
+                datos = "Usuario: " + usuario + " clave: " + clave + '\n';
+                agregarArchivo("usuarios.txt", encriptar(datos, 4));
+                datos = "Cedula: " + cedula + "\nSaldo: " + saldo;
+                escribirArchivo(usuario+ ".txt",encriptar(datos, 4));
+            }
+        }
+        if(num==2)
+        {
+            cout << "Ingrese nombre de usuario: ";
+            getline(cin, usuario);
+            string usuario1 =usuario + ".txt";
+            if (remove(usuario1.c_str()) == 0)
+            {
+                borrar("usuarios.txt","Usuario: "+ usuario, 4);
+                cout << "El usuario ha sido eliminado exitosamente." << endl;
+            } else
+            {
+                perror("Error al intentar eliminar");
+            }
+        }
+        if(num==3)
+        {
+            admin = false;
+        }
+    }
+    return 0;
 }
