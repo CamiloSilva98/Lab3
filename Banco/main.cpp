@@ -12,9 +12,16 @@ int main()
     getline(cin, usuario);
     cout<<"Ingrese su clave: ";
     getline(cin, clave);
-    // nDatos = usuario + clave;//cambiar el nombre y clave de usuario
+    // nDatos = usuario + clave;//cambiar el nombre y clave del admin
     //escribirArchivo("sudo.txt", encriptar(nDatos,4));
-    nDatos = desencriptar(leerArchivo("sudo.txt") ,4);
+    try
+    {
+        nDatos = desencriptar(leerArchivo("sudo.txt"), 4);
+    }
+    catch (const runtime_error& e)
+    {
+        cerr << "ERROR " << e.what() << endl;
+    }
     if (nDatos.find(usuario) != string::npos && nDatos.find(clave) != string::npos)
     {
         admin = true;
@@ -29,7 +36,19 @@ int main()
                  <<"1. Retirar dinero.\n"
                  <<"2. Consultar saldo.\n"
                  <<"3. Salir.\n";
-            cin>>num;
+            try
+            {
+                if (!(cin >> num))
+                {
+                    throw invalid_argument("Entrada invalida, debe ingresar un numero entre 1 y 3.");
+                }
+            }
+            catch (const exception& e)
+            {
+                cerr << "Error, " << e.what() << endl;
+                cin.clear();             // limpiar estado de cin
+                cin.ignore(10000, '\n'); // limpiar basura
+            }
             while(num != 3)
             {
                 nDatos = desencriptar(convertirABinario(leerArchivo(usuario+".txt")), 4);
@@ -39,13 +58,27 @@ int main()
                     size_t pos = nDatos.find("Saldo: ");
                     cout<<"Actualmente su ";
                     cout << nDatos.substr(pos) << endl;
-                    cout<<"Ingrese el valor que desea retirar: ";
-                    cin>>rSaldo;
-                    if (actualizarSaldo(nDatos, rSaldo))
+
+                    try
                     {
-                        escribirArchivo(usuario + ".txt", encriptar(nDatos, 4));
-                        cout << "Su dinero fue retirado.\n";
+                        cout<<"Ingrese el valor que desea retirar: ";
+                        if (!(cin >> rSaldo))
+                        {
+                            throw invalid_argument("Debe ingresar un numero valido para el retiro.");
+                        }
+                        cin.ignore(10000, '\n');
+                        if (actualizarSaldo(nDatos, rSaldo))
+                        {
+                            escribirArchivo(usuario + ".txt", encriptar(nDatos, 4));
+                            cout << "Su dinero fue retirado.\n";
+                        }
                     }
+                catch (const invalid_argument& e)
+                {
+                    cerr << "Error: " << e.what() << endl;
+                    cin.clear();                                   // limpiar estado de error
+                    cin.ignore(10000, '\n'); // limpiar todo el buffer
+                }
                 }
                 else if(num == 2)
                 {

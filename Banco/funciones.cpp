@@ -10,18 +10,16 @@ bool actualizarSaldo(std::string& archivoDesencriptado, unsigned int montoRetira
         pos += 7;
         unsigned int saldoActual = stoi(archivoDesencriptado.substr(pos));
 
-        if (saldoActual >= montoRetirar)
+        if (saldoActual < montoRetirar)
         {
-            unsigned int nuevoSaldo = saldoActual - montoRetirar;
-            archivoDesencriptado.replace(pos, string::npos, to_string(nuevoSaldo));
-            return true;
+            throw invalid_argument("Saldo insuficiente.");
         }
-        else
-        {
-            cerr << "Saldo insuficiente." << endl;
-            return false;
-        }
-    } else {
+        unsigned int nuevoSaldo = saldoActual - montoRetirar;
+        archivoDesencriptado.replace(pos, string::npos, to_string(nuevoSaldo));
+        return true;
+    }
+    else
+    {
         cerr << "No se encontró la línea de saldo." << endl;
         return false;
     }
@@ -71,18 +69,15 @@ string leerArchivo(const string& nombreArchivo)
 {
     ifstream archivo(nombreArchivo);
     string datos, linea;
-    if (archivo.is_open())
+    if (!archivo.is_open())
     {
-        while (getline(archivo, linea))
-        {
-            datos += linea;
-        }
-        archivo.close();
+         throw runtime_error("No se pudo abrir el archivo");
     }
-    else
+    while (getline(archivo, linea))
     {
-        cerr << "No se pudo abrir el archivo." << endl;
+        datos += linea;
     }
+    archivo.close();
     return datos;
 }
 
